@@ -1,6 +1,16 @@
 import express from 'express';
 // const express = require("express");
 
+import {
+    sqlCallback,
+    findUser,
+    insertUser,
+    getUsers,
+    findSource,
+    insertMessage,
+    getLastMessages,
+} from "./db.mjs";
+
 const app = express();
 app.use(express.json());
 
@@ -27,55 +37,77 @@ function authMiddleware (request, response, next) {
     const userExists = users.findIndex(
         user => user.id === source && user.password === password
     )
-    if ( userExists > -1 ) {
-        next();
-    } else {
-        response.status(401);
-        response.json('Unauthorized');
-    }
-}
-
-function lastMessages () {
-    return messages.filter(
-        message => message.time > (Date.now() - 60000)
-    )
+    findSource(source, password, (error, data)=>{
+        if (error) console.error(error);
+        if ( data ) {
+            next();
+        } else {
+            response.status(401);
+            response.json('Unauthorized');
+        }
+    });
 }
 
 app.post('/login/', (request, response) => {
     const { userName, password } = request.body;
-    const userExists = users.findIndex(
-        user => user.name === userName && user.password === password
-    );
-    if ( userExists >= 0 ) {
-        response.status(401);
-        response.send("Usuario ya registrado");
-        return;
-    }
-    const newUser = new User(userName, password);
-    users.push(newUser);
-    const json = JSON.stringify(newUser.id)
-    response.send(json);
+    findUser(userName, password, (error, data)=>{
+        if (error) console.error(error);
+        if ( data ) {
+            response.status(401);
+            response.send("Usuario ya registrado");
+        } else {
+            const newUser = new User(userName, password);
+            insertUser(newUser,sqlCallback);
+            const json = JSON.stringify(newUser.id)
+            response.send(json);
+        }
+    });
+
 });
 
 app.get('/users/', (request, response)=>{
-    const publicUsersData = users.map(
-        user => ({ name: user.name, id: user.id })
-    )
-    const json = JSON.stringify(publicUsersData)
-    response.send(json);
+    getUsers((error, data)=>{
+        if ( error ) {
+            console.error(error);
+            response.status(500)
+            response.send("Database error.")
+        }
+        if ( data ){
+            const json = JSON.stringify(data)
+            response.send(json);
+        }
+    });
 });
 
 app.post('/message/', authMiddleware, (request, response) => {
     const { source, content } = request.body;
     const newMessage = new Message(source, content);
-    messages.push(newMessage);
-    response.json(lastMessages());
-    response.send();
+    insertMessage(newMessage);
+    getLastMessages(1, (error, data)=>{
+        if ( error ) {
+            console.error(error);
+            response.status(500)
+            response.send("Database error.")
+        }
+        if ( data ) {
+            response.json(data);
+            response.send();
+        }
+    })
 });
 
 app.get('/messages/', authMiddleware, (request, response) => {
-    response.json(lastMessages());
-    response.send();
+    getLastMessages(1, (error, data)=>{
+        if ( error ) {
+            console.error(error);
+            response.status(500)
+            response.send("Database error.")
+        }
+        if ( data ) {
+            response.json(data);
+            response.send();
+        }
+    })
 });
 
 app.listen(5000, () => {
