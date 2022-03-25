@@ -1,5 +1,7 @@
+import { config } from 'dotenv';
 import express from 'express';
-// const express = require("express");
+
+if (process.env.NODE_ENV !== 'production') config();
 
 import {
     sqlCallback,
@@ -110,6 +112,6 @@ app.get('/messages/', authMiddleware, (request, response) => {
     })
 });
 
-app.listen(5000, () => {
-    console.log(`Example app listening on http://127.0.0.1:5000`)
+app.listen(process.env.PORT, () => {
+    console.log(`Example app listening on http://127.0.0.1:${process.env.PORT}`)
 })
