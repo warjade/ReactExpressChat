@@ -33,19 +33,27 @@ const users = [];
 const messages = [];
 
 function authMiddleware (request, response, next) {
-    const { source, password } = request.body;
-    const userExists = users.findIndex(
-        user => user.id === source && user.password === password
-    )
-    findSource(source, password, (error, data)=>{
-        if (error) console.error(error);
-        if ( data ) {
-            next();
-        } else {
-            response.status(401);
-            response.json('Unauthorized');
+    if ( ! request.headers.authorization ) {
+        response.status(401);
+        response.send(`Authentication requiered.`);
+    } else {
+        const [ authType, b64token ] = request.headers.authorization.split(" ",2);
+        if ( authType !== "Basic") {
+            response.status(400);
+            response.send(`Ùnknown authentication type: ${authType}`);
         }
-    });
+        const token = atob(b64token);
+        const [ source, password ] = token.split(":",2);
+        findSource(source, password, (error, data)=>{
+            if (error) console.error(error);
+            if ( data ) {
+                next();
+            } else {
+                response.status(401);
+                response.json('Unauthorized');
+            }
+        });
+    };
 }
 
 app.post('/login/', (request, response) => {
