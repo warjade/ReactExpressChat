@@ -34,6 +34,12 @@ class Message {
 const users = [];
 const messages = [];
 
+function decodeBasicToken(request) {
+    const [ authType, b64token ] = request.headers.authorization.split(" ",2);
+    const token = atob(b64token);
+    return token.split(":",2);
+}
+
 function authMiddleware (request, response, next) {
     if ( ! request.headers.authorization ) {
         response.status(401);
@@ -44,8 +50,7 @@ function authMiddleware (request, response, next) {
             response.status(400);
             response.send(`Ùnknown authentication type: ${authType}`);
         }
-        const token = atob(b64token);
-        const [ source, password ] = token.split(":",2);
+        const [ source, password ] = decodeBasicToken(request);
         findSource(source, password, (error, data)=>{
             if (error) console.error(error);
             if ( data ) {
@@ -90,7 +95,8 @@ app.get('/users/', (request, response)=>{
 });
 
 app.post('/message/', authMiddleware, (request, response) => {
-    const { source, content } = request.body;
+    const [ source ] =  decodeBasicToken(request)
+    const { content } = request.body;
     const newMessage = new Message(source, content);
     insertMessage(newMessage);
     getLastMessages(1, (error, data)=>{
