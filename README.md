@@ -10,28 +10,34 @@ Tendrás que escribir tu propio frontend para participar en el chat.
  * JSON GET
  */ 
 
-async function get(url, data) {
+async function get(url) {
     const response = await fetch(url, {
         headers: {
             'Accept': 'application/json'
         }
     });
-    return response;
+    const data = await response.json();
+    return data;
 }
-```
 
-```js
 /**
  *  JSON POST
  */ 
 async function post(url, data) {
     const response = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: {
-        'Content-Type': 'application/json'
-    }
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
     });
-    return response;
+    const responseData = await response.json();
+    return responseData;
 }
+
+// Casos de uso sobre la API del ejemplo
+
+post ("https://web-develop-react-express-chat.herokuapp.com/login/", {userName: "Dan", password: "123"})
+
+get(url+"users/")
 ```
