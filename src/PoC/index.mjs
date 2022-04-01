@@ -3,11 +3,7 @@ const htmlGetUsers = document.querySelector("#getUsers");
 const htmlUpdateButton = document.querySelector("#updateButton");
 
 async function get(url) {
-    const response = await fetch(url, {
-        headers: {
-            'Accept': 'application/json'
-        }
-    });
+    const response = await fetch(url);
     const data = await response.json();
     return data;
 }
