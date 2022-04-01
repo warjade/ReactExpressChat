@@ -107,7 +107,7 @@ get(host+"/users/");
 data = JSON.stringify({userName: "Dani", password: "abc123"});
 post(url+"/login/", data);
 
-const token = authToken("Lolita","abc123");
+const token = authToken("234234234234","abc123");
 authGet(url+"/messages/", token});
 
 data = JSON.stringify({content: "Tengo una cosa que no funciona."});
