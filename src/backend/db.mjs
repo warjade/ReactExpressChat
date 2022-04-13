@@ -33,7 +33,6 @@ db.run(`
 
 export function sqlCallback (error, data) {
     console.log("error:", error, "data:", data);
-    if ( error ) throw error;
 }
 
 export function findUser ( name, password, callback ) {
